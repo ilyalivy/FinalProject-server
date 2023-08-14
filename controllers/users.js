@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const BASE_URL = process.env.REACT_APP_BASE_URL
 
 export const _register = async (req, res) => {
     const {email, password} = req.body
@@ -79,7 +80,7 @@ export const _uploadPhoto = async (req, res) => {
         return res.status(400).json({ msg: 'No files were uploaded.' });
     }
 
-    const photoUrl = `http://localhost:3030/uploads/${req.file.filename}`;
+    const photoUrl = `${BASE_URL}/uploads/${req.file.filename}`;
     await updateUserPhoto(req.params.id, photoUrl);
     res.json({ photo: photoUrl });
 }
