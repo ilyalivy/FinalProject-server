@@ -7,6 +7,7 @@ urouter.post('/register', _register)
 urouter.post('/login', _login)
 urouter.get('/tvseriesfriends/:id', _getTvSeriesFriends)
 urouter.put('/profile/:id/updateUsername', _updateUsername);
+// urouter.post("/upload-photo", upload.single("file"), _uploadPhoto);
 urouter.post('/profile/:id/uploadPhoto', upload.single('photo'), _uploadPhoto);
 urouter.get('/user/:userId', _getUserById);
 

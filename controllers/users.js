@@ -1,12 +1,15 @@
 import { register, login, getTvSeriesFriends, updateUsername, updateUserPhoto, getUserById } from '../models/users.js'
 import bcrypt from 'bcrypt'
 import multer from 'multer';
+import multerS3 from 'multer-s3';
+import { s3 } from "../config/aws.s3.config.js";
 import path from 'path';
-import { fileURLToPath } from 'url';
+// import { fileURLToPath } from 'url';
+import dotenv from "dotenv";
+dotenv.config();
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const BASE_URL = process.env.REACT_APP_BASE_URL
 
 export const _register = async (req, res) => {
     const {email, password} = req.body
@@ -64,26 +67,52 @@ export const _updateUsername = async (req, res) => {
     }
 }
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '..', 'uploads'));
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
 
-export const upload = multer({ storage: storage });
+export const upload = multer({
+    storage: multerS3({
+      s3,
+      acl: "public-read",
+      bucket: process.env.AWS_BUCKET,
+      contentType: multerS3.AUTO_CONTENT_TYPE,
+      key: (req, file, cb) => {
+        const fileName = `${Date.now()}_${Math.round(Math.random() * 1e9)}`;
+        cb(null, `${fileName}${path.extname(file.originalname)}`);
+      },
+    }),
+  });
+
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         cb(null, path.join(__dirname, '..', 'uploads'));
+//     },
+//     filename: (req, file, cb) => {
+//         cb(null, Date.now() + '-' + file.originalname);
+//     }
+// });
+
+// export const upload = multer({ storage: storage });
+
+
 
 export const _uploadPhoto = async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ msg: 'No files were uploaded.' });
+    // req.file contains a file object
+    try {
+      const row = await updateUserPhoto(req.file,req.params.id);
+      res.json(row);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
+  };
 
-    const photoUrl = `${BASE_URL}/uploads/${req.file.filename}`;
-    await updateUserPhoto(req.params.id, photoUrl);
-    res.json({ photo: photoUrl });
-}
+// export const _uploadPhoto = async (req, res) => {
+//     if (!req.file) {
+//         return res.status(400).json({ msg: 'No files were uploaded.' });
+//     }
+
+//     const photoUrl = `http://localhost:3030/uploads/${req.file.filename}`;
+//     await updateUserPhoto(req.params.id, photoUrl);
+//     res.json({ photo: photoUrl });
+// }
 
 export const _getUserById = async (req, res) => {
     try {
