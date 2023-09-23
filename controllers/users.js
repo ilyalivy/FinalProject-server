@@ -72,7 +72,7 @@ export const upload = multer({
     storage: multerS3({
       s3,
       acl: "public-read",
-      bucket: process.env.AWS_BUCKET,
+      bucket: process.env.BUCKET,
       contentType: multerS3.AUTO_CONTENT_TYPE,
       key: (req, file, cb) => {
         const fileName = `${Date.now()}_${Math.round(Math.random() * 1e9)}`;
